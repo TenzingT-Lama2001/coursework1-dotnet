@@ -1,0 +1,6 @@
+namespace Coursework.Data;
+
+public class GlobalState
+{
+    public User CurrentUser { get; set; }
+}
