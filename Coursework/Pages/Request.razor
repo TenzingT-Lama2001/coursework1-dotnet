@@ -1,0 +1,329 @@
+﻿@page "/requests"
+@inject IJSRuntime JSRuntime;
+
+<ul class="nav nav-tabs">
+    <li class="nav-item ">
+        <a class='nav-link btn @(_tabFilter == "All" ? "active" : "")' @onclick='()=>TabFilter("All")'>All</a>
+    </li>
+    <li class="nav-item">
+        <a class='nav-link btn @(_tabFilter == "Due" ? "active" : "")' @onclick='()=>TabFilter("Due")'>Due</a>
+    </li>
+    <li class="nav-item">
+        <a class='nav-link btn @(_tabFilter == "Done" ? "active" : "")' @onclick='()=>TabFilter("Done")'>Done</a>
+    </li>
+</ul>
+
+<table class="table">
+    <thead>
+        <tr>
+
+            <th>
+                <div class="d-flex">
+                    <input type="search" class="form-control search" placeholder="Search" @oninput="SearchItemName" />
+                    <a class='btn text-@(_sortBy == "ItemName" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
+                        @onclick='()=>SortByHandler("ItemName")'>
+                        <span class='oi oi-sort-@(_sortBy == "ItemName" ? _sortDirection : "ascending")' />
+                    </a>
+                </div>
+            </th>
+            <th>
+                <div class="d-flex">
+                    Quantity
+                    <a class='btn text-@(_sortBy == "quantity" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
+                        @onclick='()=>SortByHandler("quantity")'>
+                        <span class='oi oi-sort-@(_sortBy == "quantity" ? _sortDirection : "ascending")' />
+                    </a>
+                </div>
+            </th>
+            <th>
+                <div class="d-flex">
+                    Username
+                    <a class='btn text-@(_sortBy == "username" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
+                        @onclick='()=>SortByHandler("username")'>
+                        <span class='oi oi-sort-@(_sortBy == "username" ? _sortDirection : "ascending")' />
+                    </a>
+                </div>
+            </th>
+                        <th>
+                <div class="d-flex">
+                    Status
+                    <a class='btn text-@(_sortBy == "status" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
+                       @onclick='()=>SortByHandler("status")'>
+                        <span class='oi oi-sort-@(_sortBy == "status" ? _sortDirection : "ascending")' />
+                    </a>
+                </div>
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            IEnumerable<RequestedItem> itemList = _requestedItems;
+
+            if (_sortBy == "itemName")
+            {
+                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.ItemName) : itemList.OrderByDescending(t =>
+                t.ItemName);
+            }
+            else if (_sortBy == "quantity")
+            {
+                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.Quantity) : itemList.OrderByDescending(t =>
+                t.Quantity);
+            }
+                        else if (_sortBy == "status")
+            {
+                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.Status) : itemList.OrderByDescending(t =>
+                t.Status);
+            }
+
+            else if (_sortBy == "username")
+            {
+                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.UserName) : itemList.OrderByDescending(t =>
+                t.UserName);
+            }
+
+
+
+            foreach (var RequestedItem in itemList)
+            {
+                                    <tr>
+
+                        <td>@RequestedItem.ItemName</td>
+                                        <td>
+                            @RequestedItem.Quantity
+                                        </td>
+                                    <td>
+                                        <p class="small mb-0">
+                                @RequestedItem.UserName
+                                        </p>
+                                    </td>
+                    <td>
+                        <p class="small mb-0">
+                            @RequestedItem.Status
+                        </p>
+                    </td>
+                                    <td>
+
+
+                                    
+
+                        @if (RequestedItem.Status.Equals(_isApproved))
+                        {
+                             JSRuntime.InvokeAsync<object>("console.log", "The _isApproved value is: " + _isApproved);
+                            <button class='btn btn-outline-secondary' type="button"
+                       >
+                                <span class="oi oi-pencil" /> Approved
+                            </button>
+                        }
+                        else{
+                                      <button class='btn btn-outline-secondary' type="button"
+                            @onclick="()=>OpenApproveItemDialog(RequestedItem)">
+                                        <span class="oi oi-pencil" /> Approve
+                                    </button>
+                            <button class='btn btn-outline-danger' type="button" @onclick="()=>OpenDeclineItemDialog(RequestedItem)">
+                                        <span class="oi oi-delete" /> Decline
+                            </button>
+                        }
+
+                
+                 
+
+
+                                    </td>
+                                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@if (_showApproveItemDialog)
+{
+        <ModalDialog Title="@_dialogTitle" OnClose="@OnCloseApproveItemDialogClose" OkLabel="@_dialogOkLabel">
+        <div class="form-floating">
+            <input id="ItemName" type="text" class="form-control" @bind="_requestedItemModel.ItemName" placeholder="Item Name" />
+            <label for="ItemName">Item Name</label>
+        </div>
+            <div class="form-floating">
+            <input id="ItemName" type="text" class="form-control" @bind="_requestedItemModel.Quantity" placeholder="Item Quantity" />
+            <label for="ItemName">Item Quantity</label>
+        </div>
+
+               
+         <div class="form-floating">
+            <input id="ItemName" type="text" class="form-control" @bind="_requestedItemModel.UserName" placeholder="User Name" />
+            <label for="ItemName"> User Name</label>
+        </div>
+
+
+        @if (!string.IsNullOrEmpty(_approveItemErrorMessage))
+        {
+            <AlertMessage Type="danger" Message="@_approveItemErrorMessage" />
+        }
+            </ModalDialog>
+}
+
+
+@if (_showDeclineItemDialog)
+{
+        <ModalDialog Title="Decline Request" OnClose="@OnDeclineItemDialogClose" OkLabel="Decline">
+        <p>Are you sure you want to decline <strong>@_declineItem.ItemName</strong> item?</p>
+        @if (!string.IsNullOrEmpty(_declineItemErrorMessage))
+        {
+            <AlertMessage Type="danger" Message="@_declineItemErrorMessage" />
+        }
+            </ModalDialog>
+}
+
+@code {
+    [CascadingParameter]
+    private GlobalState _globalState { get; set; }
+    private bool _showDeclineItemDialog { get; set; }
+    private bool _showApproveItemDialog { get; set; }
+    private List<InventoryItem> _items { get; set; }
+    private List<RequestedItem> _requestedItems { get; set; }
+    private InventoryItem _deleteItem { get; set; }
+    private RequestedItem _declineItem { get; set; }
+    private string _dialogTitle { get; set; }
+    private string _dialogOkLabel { get; set; }
+    private string _approveItemErrorMessage { get; set; }
+    private string _declineItemErrorMessage { get; set; }
+    private InventoryItem _itemModel { get; set; }
+    private RequestedItem _requestedItemModel { get; set; }
+    private string _tabFilter = "All";
+    private string _sortBy = "dueDate";
+    private string _sortDirection = "ascending";
+    private string _adminName;
+    private User _admin;
+    private string _requestedBy;
+    private string _role;
+    private Status _isApproved = Status.Approved;
+    private List<ApprovedItem> _approvedItems { get; set; }
+
+
+    protected override void OnInitialized()
+    {
+        _requestedItems = InventoryItemService.GetAllRequestedItems();
+        _approvedItems = InventoryItemService.GetAllApprovedItems();
+
+        _admin = UsersService.GetById(_globalState.CurrentUser.Id);
+        _adminName = _admin.Username.ToString();
+
+        _role = _admin.Role.ToString();
+
+
+
+    }
+
+    private void SortByHandler(string sortByName)
+    {
+        if (_sortBy == sortByName)
+        {
+            _sortDirection = _sortDirection == "ascending" ? "descending" : "ascending";
+        }
+        else
+        {
+            _sortBy = sortByName;
+            _sortDirection = "ascending";
+        }
+    }
+
+
+    private void SearchItemName(ChangeEventArgs e)
+    {
+        var searchTerm = e.Value.ToString();
+        if (!string.IsNullOrEmpty(searchTerm) && searchTerm.Length > 2)
+        {
+            _items = InventoryItemService.GetAll().Where(t =>
+            t.ItemName.ToLower().Contains(searchTerm.ToLower())).ToList();
+        }
+        else
+        {
+            _items = InventoryItemService.GetAll();
+        }
+    }
+
+    private void OpenApproveItemDialog(RequestedItem requestedItem)
+    {
+        _dialogTitle = "Approve Item";
+        _dialogOkLabel = "Approve";
+
+        _requestedItemModel = requestedItem;
+
+
+        _requestedBy = _requestedItemModel.UserName.ToString();
+
+
+        _showApproveItemDialog = true;
+    }
+
+    private void OpenDeclineItemDialog(RequestedItem requestedItem)
+    {
+        _declineItem = requestedItem;
+        _showDeclineItemDialog = true;
+    }
+
+
+    private void  OnCloseApproveItemDialogClose(bool isCancel){
+
+        if (isCancel)
+        {
+            _showApproveItemDialog = false;
+        }
+        else
+        {
+            try
+
+            {
+                _approveItemErrorMessage = "";
+
+                string itemName = _requestedItemModel.ItemName;
+                int quantity = _requestedItemModel.Quantity;
+                Guid id = _requestedItemModel.Id;
+                bool isApproved = true;
+
+               InventoryItemService.ApproveItem(_adminName, _requestedBy, itemName, quantity, id,isApproved);
+
+
+
+                _showApproveItemDialog = false;
+               
+            
+            }
+            catch (Exception e)
+            {
+                _approveItemErrorMessage = e.Message;
+            }
+        }
+
+    }
+
+    private void OnDeclineItemDialogClose(bool isCancel)
+    {
+        if (isCancel)
+        {
+
+            _showDeclineItemDialog = false;
+            _declineItem = null;
+        }
+        else
+        {
+            try
+            {
+                _declineItemErrorMessage = "";
+
+                _showDeclineItemDialog = false;
+                _requestedItems = InventoryItemService.DeclineRequestedItem(_declineItem.Id);
+                _declineItem = null;
+            }
+            catch (Exception e)
+            {
+                _declineItemErrorMessage = e.Message;
+            }
+        }
+    }
+    private void TabFilter(string status)
+    {
+        _tabFilter = status;
+    }
+
+}

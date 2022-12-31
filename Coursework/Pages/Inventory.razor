@@ -77,27 +77,36 @@
 
             foreach (var InventoryItem in itemList)
             {
-                <tr>
+                        <tr>
 
-                    <td>@InventoryItem.ItemName</td>
-                    <td>
-                        @InventoryItem.Quantity
-                    </td>
-                <td>
-                    <p class="small mb-0">
-                        @InventoryItem.CreatedAt.ToString("MMM dd, yyyy h:mm tt")
-                    </p>
-                </td>
-                <td>
-                    <button class="btn btn-outline-secondary " type="button"
-                        @onclick="()=>OpenEditItemDialog(InventoryItem)">
-                        <span class="oi oi-pencil" /> Edit
-                    </button>
-                    <button class="btn btn-outline-danger" type="button" @onclick="()=>OpenDeleteItemDialog(InventoryItem)">
-                        <span class="oi oi-delete" /> Delete
-                    </button>
-                </td>
-            </tr>
+                            <td>@InventoryItem.ItemName</td>
+                            <td>
+                                @InventoryItem.Quantity
+                            </td>
+                        <td>
+                            <p class="small mb-0">
+                                @InventoryItem.CreatedAt.ToString("MMM dd, yyyy h:mm tt")
+                            </p>
+                        </td>
+                        <td>
+
+
+                        <button class='btn btn-outline-secondary  @(_role == "Admin" ? "display-none" : "")' type="button"
+                            @onclick="()=>OpenTakeOutItemDialog(InventoryItem)">
+                            <span class="oi oi-pencil" /> Take out
+                        </button>
+
+                        <button class='btn btn-outline-secondary  @(_role == "User" ? "display-none" : "")' type="button"
+                            @onclick="()=>OpenEditItemDialog(InventoryItem)">
+                            <span class="oi oi-pencil" /> Edit
+                        </button>
+                        <button class='btn btn-outline-danger @(_role == "User" ? "display-none" : "")' type="button" @onclick="()=>OpenDeleteItemDialog(InventoryItem)">
+                            <span class="oi oi-delete" /> Delete
+                        </button>
+                                
+                   
+                        </td>
+                    </tr>
             }
         }
     </tbody>
@@ -123,6 +132,26 @@
         </ModalDialog>
 }
 
+@if (_showTakeOutItemDialog)
+{
+    <ModalDialog Title="@_dialogTitle" OnClose="@OnTakeOutItemDialogClose" OkLabel="@_dialogOkLabel">
+        <div class="form-floating">
+            <input id="ItemName" type="text" class="form-control" @bind="_itemModel.ItemName" placeholder="Item Name" />
+            <label for="ItemName">Item Name</label>
+        </div>
+        <div class="form-floating">
+            <input id="ItemQuantity" type="text" class="form-control" @bind="_takeQuantity" placeholder="Item Quantity" />
+            <label for="ItemQuantity">Item Quantity</label>
+        </div>
+
+
+        @if (!string.IsNullOrEmpty(_takeOutItemErrorMessage))
+        {
+            <AlertMessage Type="danger" Message="@_takeOutItemErrorMessage" />
+        }
+    </ModalDialog>
+}
+
 @if (_showDeleteItemDialog)
 {
     <ModalDialog Title="Delete Todo" OnClose="@OnDeleteItemDialogClose" OkLabel="Confirm">
@@ -139,18 +168,22 @@
     private GlobalState _globalState { get; set; }
     private bool _showEditItemDialog { get; set; }
     private bool _showDeleteItemDialog { get; set; }
+    private bool _showTakeOutItemDialog { get; set; }
     private List<InventoryItem> _items { get; set; }
+    private List<RequestedItem> _requestedItems { get; set; }
     private InventoryItem _deleteItem { get; set; }
     private string _dialogTitle { get; set; }
     private string _dialogOkLabel { get; set; }
     private string _editItemErrorMessage { get; set; }
+    private string _takeOutItemErrorMessage { get; set; }
     private string _deleteItemErrorMessage { get; set; }
     private InventoryItem _itemModel { get; set; }
     private string _tabFilter = "All";
     private string _sortBy = "dueDate";
     private string _sortDirection = "ascending";
-
+    private int _takeQuantity;
     private User _user;
+    private string _userName;
     private string _role;
 
 
@@ -158,8 +191,9 @@
     protected override void OnInitialized()
     {
         _items = InventoryItemService.GetAll();
-
+        _requestedItems = InventoryItemService.GetAllRequestedItems();
         _user = UsersService.GetById(_globalState.CurrentUser.Id);
+        _userName = _user.Username.ToString();
 
         _role = _user.Role.ToString();
 
@@ -211,7 +245,15 @@
 
         _showEditItemDialog = true;
     }
+    private void OpenTakeOutItemDialog(InventoryItem takeItem)
+    {
+        _dialogTitle = "Take Item Out";
+        _dialogOkLabel = "Save";
 
+        _itemModel = takeItem;
+
+        _showTakeOutItemDialog = true;
+    }
     private void OpenDeleteItemDialog(InventoryItem InventoryItem)
     {
         _deleteItem = InventoryItem;
@@ -247,8 +289,37 @@
             catch (Exception e)
             {
                 _editItemErrorMessage = e.Message;
+
             }
         }
+    }
+
+    private void OnTakeOutItemDialogClose(bool isCancel){
+        if (isCancel){
+            _showTakeOutItemDialog = false; 
+        }
+        else{
+            try
+            {
+                _takeOutItemErrorMessage = "";
+                if (_itemModel.Quantity < _takeQuantity)
+                {
+                    _takeOutItemErrorMessage = "You cannot take out more quantity than" + _itemModel.Quantity;
+                }
+                else { 
+                    _requestedItems = InventoryItemService.RequestItem(_userName, _itemModel.ItemName, _takeQuantity);
+                    _showTakeOutItemDialog = false;
+                
+                }
+                
+
+            }
+            catch (Exception e) {
+                _takeOutItemErrorMessage = e.Message;
+                
+            }
+        }
+
     }
     private void OnDeleteItemDialogClose(bool isCancel)
     {

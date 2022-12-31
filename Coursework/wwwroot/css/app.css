@@ -12,6 +12,11 @@ a, .btn-link {
     color: #0071c1;
 }
 
+.bnt-approved {
+    color: white;
+    background-color: #03925e;
+}
+
 .btn-primary {
     color: #fff;
     background-color: #1b6ec2;
