@@ -1,0 +1,215 @@
+﻿
+@page "/inventorylog"
+@inject IJSRuntime JSRuntime;
+
+<ul class="nav nav-tabs">
+    <li class="nav-item ">
+        <a class='nav-link btn @(_tabFilter == "All" ? "active" : "")' @onclick='()=>TabFilter("All")'>All</a>
+    </li>
+    <li class="nav-item">
+        <a class='nav-link btn @(_tabFilter == "Due" ? "active" : "")' @onclick='()=>TabFilter("Due")'>Due</a>
+    </li>
+    <li class="nav-item">
+        <a class='nav-link btn @(_tabFilter == "Done" ? "active" : "")' @onclick='()=>TabFilter("Done")'>Done</a>
+    </li>
+</ul>
+
+<table class="table">
+    <thead>
+        <tr>
+
+            <th>
+                <div class="d-flex">
+                    Item
+                    <a class='btn text-@(_sortBy == "itemName" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
+                       @onclick='()=>SortByHandler("quantity")'>
+                        <span class='oi oi-sort-@(_sortBy == "itemName" ? _sortDirection : "ascending")' />
+                    </a>
+                </div>
+            </th>
+            <th>
+                <div class="d-flex">
+                    Quantity
+                    <a class='btn text-@(_sortBy == "quantity" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
+                       @onclick='()=>SortByHandler("quantity")'>
+                        <span class='oi oi-sort-@(_sortBy == "quantity" ? _sortDirection : "ascending")' />
+                    </a>
+                </div>
+            </th>
+                 <th>
+                <div class="d-flex">
+                    Approved by
+                    <a class='btn text-@(_sortBy == "status" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
+                       @onclick='()=>SortByHandler("status")'>
+                        <span class='oi oi-sort-@(_sortBy == "status" ? _sortDirection : "ascending")' />
+                    </a>
+                </div>
+            </th>
+            <th>
+                <div class="d-flex">
+                    Taken By
+                    <a class='btn text-@(_sortBy == "username" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
+                       @onclick='()=>SortByHandler("username")'>
+                        <span class='oi oi-sort-@(_sortBy == "username" ? _sortDirection : "ascending")' />
+                    </a>
+                </div>
+            </th>
+                        <th>
+                <div class="d-flex">
+                    Status
+                    <a class='btn text-@(_sortBy == "status" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
+                       @onclick='()=>SortByHandler("status")'>
+                        <span class='oi oi-sort-@(_sortBy == "status" ? _sortDirection : "ascending")' />
+                    </a>
+                </div>
+            </th>
+            <th>
+                <div class="d-flex">
+                    Date Taken out
+                    <a class='btn text-@(_sortBy == "date" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
+                       @onclick='()=>SortByHandler("status")'>
+                        <span class='oi oi-sort-@(_sortBy == "date" ? _sortDirection : "ascending")' />
+                    </a>
+                </div>
+            </th>
+                   
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            IEnumerable<RequestedItem> itemList = _requestedItems;
+
+            if (_sortBy == "itemName")
+            {
+                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.ItemName) : itemList.OrderByDescending(t =>
+                t.ItemName);
+            }
+            else if (_sortBy == "quantity")
+            {
+                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.Quantity) : itemList.OrderByDescending(t =>
+                t.Quantity);
+            }
+            else if (_sortBy == "status")
+            {
+                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.Status) : itemList.OrderByDescending(t =>
+                t.Status);
+            }
+
+            else if (_sortBy == "username")
+            {
+                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.UserName) : itemList.OrderByDescending(t =>
+                t.UserName);
+            }
+            else if (_sortBy == "adminName")
+            {
+                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.AdminName) : itemList.OrderByDescending(t =>
+                t.AdminName);
+            }
+            else if (_sortBy == "date")
+            {
+                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.TakenOutDate) : itemList.OrderByDescending(t =>
+                t.TakenOutDate);
+            }
+
+
+
+            foreach (var RequestedItem in itemList)
+            {
+                <tr>
+
+                    <td>@RequestedItem.ItemName</td>
+                    <td>
+                        @RequestedItem.Quantity
+                    </td>
+                    <td>
+                        <p class="small mb-0">
+                            @RequestedItem.AdminName
+                        </p>
+                    </td>
+                                        <td>
+                        <p class="small mb-0">
+                            @RequestedItem.UserName
+                        </p>
+                    </td>
+                    <td>
+                        <p class="small mb-0">
+                            @RequestedItem.Status
+                        </p>
+                    </td>
+                    <td>
+                        <p class="small mb-0">
+                            @RequestedItem.TakenOutDate
+                        </p>
+                    </td>
+                   
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+
+
+
+
+@code {
+    [CascadingParameter]
+    private GlobalState _globalState { get; set; }
+    private bool _showDeclineItemDialog { get; set; }
+    private bool _showApproveItemDialog { get; set; }
+    private List<InventoryItem> _items { get; set; }
+    private List<RequestedItem> _requestedItems { get; set; }
+    private InventoryItem _deleteItem { get; set; }
+    private RequestedItem _declineItem { get; set; }
+    private string _dialogTitle { get; set; }
+    private string _dialogOkLabel { get; set; }
+    private string _approveItemErrorMessage { get; set; }
+    private string _declineItemErrorMessage { get; set; }
+    private InventoryItem _itemModel { get; set; }
+    private RequestedItem _requestedItemModel { get; set; }
+    private string _tabFilter = "All";
+    private string _sortBy = "dueDate";
+    private string _sortDirection = "ascending";
+    private string _adminName;
+    private User _admin;
+    private string _requestedBy;
+    private string _role;
+    private Status _isApproved = Status.Approved;
+
+
+
+    protected override void OnInitialized()
+    {
+        _requestedItems = InventoryItemService.GetAllRequestedItems();
+
+
+        _admin = UsersService.GetById(_globalState.CurrentUser.Id);
+        _adminName = _admin.Username.ToString();
+
+        _role = _admin.Role.ToString();
+
+
+
+    }
+
+    private void SortByHandler(string sortByName)
+    {
+        if (_sortBy == sortByName)
+        {
+            _sortDirection = _sortDirection == "ascending" ? "descending" : "ascending";
+        }
+        else
+        {
+            _sortBy = sortByName;
+            _sortDirection = "ascending";
+        }
+    }
+
+
+    private void TabFilter(string status)
+    {
+        _tabFilter = status;
+    }
+
+}

@@ -1,4 +1,5 @@
 ﻿
+
 using System.Text.Json;
 
 namespace Coursework.Data;
@@ -43,18 +44,7 @@ public static class InventoryItemService
 
         return JsonSerializer.Deserialize<List<RequestedItem>>(json);
     }
-    public static List<ApprovedItem> GetAllApprovedItems()
-    {
-        string approveditemsFilePath = Utils.GetApprovedItemsFilePath();
-        if (!File.Exists(approveditemsFilePath))
-        {
-            return new List<ApprovedItem>();
-        }
 
-        var json = File.ReadAllText(approveditemsFilePath);
-
-        return JsonSerializer.Deserialize<List<ApprovedItem>>(json);
-    }
 
 
     public static List<InventoryItem> Create( string ItemName, int Quantity)
@@ -125,21 +115,6 @@ public static class InventoryItemService
         return items;
     }
 
-    public static List<RequestedItem> UpdateRequestItem(string username, string itemname, int quantity, Guid requestItemId)
-    {
-        List<RequestedItem> items = GetAllRequestedItems();
-        RequestedItem itemToUpdate = items.FirstOrDefault(x => x.Id == requestItemId);
-
-        if (itemToUpdate == null)
-        {
-            throw new Exception("Item not found.");
-        }
-
-
-        itemToUpdate.Status = Status.Approved;
-        SaveAllRequestedItems(items);
-        return items;
-    }
 
 
 
@@ -175,12 +150,22 @@ public static class InventoryItemService
 
     }
 
+    public static List<InventoryDetail> GetAllInventoryDetails()
+    {
+        string itemsFilePath = Utils.GetInventoryDetailsFilePath();
+        if (!File.Exists(itemsFilePath))
+        {
+            return new List<InventoryDetail>();
+        }
 
-    private static void SaveAllApprovedItems(List<ApprovedItem> items)
+        var json = File.ReadAllText(itemsFilePath);
+
+        return JsonSerializer.Deserialize<List<InventoryDetail>>(json);
+    }
+    private static void SaveAllInventoryDetails(List<InventoryDetail> items)
     {
         string appDataDirectoryPath = Utils.GetAppDirectoryPath();
-        string approvedItemsFilePath = Utils.GetApprovedItemsFilePath();
-        string requestedItemsFilePath = Utils.GetRequestedItemsFilePath();
+        string itemsFilePath = Utils.GetInventoryDetailsFilePath();
 
         if (!Directory.Exists(appDataDirectoryPath))
         {
@@ -188,13 +173,50 @@ public static class InventoryItemService
         }
 
         var json = JsonSerializer.Serialize(items);
-        File.WriteAllText(approvedItemsFilePath, json);
+        File.WriteAllText(itemsFilePath, json);
     }
 
-    public static List<ApprovedItem> ApproveItem(string adminName,string username,string itemname, int quantity,Guid requestItemId,bool isApproved)
-    {
-        List<ApprovedItem> approvedItems = GetAllApprovedItems();
 
+    public static List<InventoryDetail> UpdateInventoryDetail() {
+        List<RequestedItem> requestedItems = GetAllRequestedItems();
+        List<InventoryItem> allItems = GetAll();
+
+        
+        List<InventoryDetail> inventoryDetails = allItems
+    .GroupBy(item => item.ItemName)
+    .Select(group => new InventoryDetail
+    {
+        ItemName = group.Key,
+        Quantity = group.Sum(x => x.Quantity)
+    })
+    .ToList();
+
+        var inventoryDetailsWithLatestDates = inventoryDetails
+            .Join(requestedItems,
+                inventoryDetail => inventoryDetail.ItemName,
+                requestedItem => requestedItem.ItemName,
+                (inventoryDetail, requestedItem) => new
+                {
+                    inventoryDetail,
+                    latestDate = requestedItems
+                        .Where(x => x.ItemName == inventoryDetail.ItemName)
+                        .Max(x => x.TakenOutDate)
+                })
+            .Select(x => new InventoryDetail
+            {
+                ItemName = x.inventoryDetail.ItemName,
+                Quantity = x.inventoryDetail.Quantity,
+                TakenOutDate = x.latestDate
+            })
+            .ToList();
+
+        SaveAllInventoryDetails(inventoryDetailsWithLatestDates);
+
+        return inventoryDetailsWithLatestDates;
+    }
+
+    public static List<RequestedItem> ApproveItem(string adminName,string username,string itemname, int quantity,Guid requestItemId,bool isApproved)
+    {
 
         List<RequestedItem> requestedItems = GetAllRequestedItems();
         List<InventoryItem> allItems = GetAll();
@@ -204,26 +226,24 @@ public static class InventoryItemService
         RequestedItem requestedItemToUpdate= requestedItems.FirstOrDefault(x => x.Id == requestItemId);
         
         itemToUpdate.Quantity -= quantity;
+        requestedItemToUpdate.AdminName = adminName;
         requestedItemToUpdate.Status = isApproved ? Status.Approved : Status.Pending;
-     
-      
 
-        approvedItems.Add(new ApprovedItem
-        {
+        string dateNow = DateTime.Now.ToString("dd/MM/yyyy");
+        requestedItemToUpdate.TakenOutDate = dateNow;
 
-            UserName = username,
-            AdminName = adminName,
-            Quantity = quantity,
-            ItemName = itemname,
-       
-        });
+
 
 
         SaveAll(allItems);
         SaveAllRequestedItems(requestedItems);
-        SaveAllApprovedItems(approvedItems);
 
-        return approvedItems;
+
+
+
+        UpdateInventoryDetail();
+
+        return requestedItems;
     }
     public static List<RequestedItem> DeclineRequestedItem(Guid id)
     {
@@ -240,6 +260,7 @@ public static class InventoryItemService
         return items;
     }
 
+    
 
 
 

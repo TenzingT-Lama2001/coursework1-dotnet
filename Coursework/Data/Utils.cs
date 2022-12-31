@@ -60,8 +60,8 @@ public static class Utils
     {
         return Path.Combine(GetAppDirectoryPath() + "requestedItems.json");
     }
-    public static string GetApprovedItemsFilePath()
+    public static string GetInventoryDetailsFilePath()
     {
-        return Path.Combine(GetAppDirectoryPath() + "approvedItems.json");
+        return Path.Combine(GetAppDirectoryPath() + "inventoryDetails.json");
     }
 }

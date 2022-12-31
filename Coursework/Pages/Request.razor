@@ -102,6 +102,7 @@
                             @RequestedItem.Status
                         </p>
                     </td>
+         
                                     <td>
 
 
@@ -197,13 +198,13 @@
     private string _requestedBy;
     private string _role;
     private Status _isApproved = Status.Approved;
-    private List<ApprovedItem> _approvedItems { get; set; }
+
 
 
     protected override void OnInitialized()
     {
         _requestedItems = InventoryItemService.GetAllRequestedItems();
-        _approvedItems = InventoryItemService.GetAllApprovedItems();
+
 
         _admin = UsersService.GetById(_globalState.CurrentUser.Id);
         _adminName = _admin.Username.ToString();
@@ -281,8 +282,8 @@
                 Guid id = _requestedItemModel.Id;
                 bool isApproved = true;
 
-               InventoryItemService.ApproveItem(_adminName, _requestedBy, itemName, quantity, id,isApproved);
-
+                _requestedItems = InventoryItemService.ApproveItem(_adminName, _requestedBy, itemName, quantity, id,isApproved);
+                
 
 
                 _showApproveItemDialog = false;
