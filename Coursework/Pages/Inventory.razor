@@ -278,11 +278,13 @@
                 if (_itemModel.Id == Guid.Empty)
                 {
                     _items = InventoryItemService.Create(_itemModel.ItemName,_itemModel.Quantity );
+                    InventoryItemService.UpdateDetailedInventory();
                 }
                 else
                 {
                     _items = InventoryItemService.Update(_itemModel.Id, _itemModel.ItemName,_itemModel.Quantity
                    );
+                    InventoryItemService.UpdateDetailedInventory();
                 }
                 _showEditItemDialog = false;
             }

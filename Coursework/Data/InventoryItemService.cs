@@ -44,6 +44,18 @@ public static class InventoryItemService
 
         return JsonSerializer.Deserialize<List<RequestedItem>>(json);
     }
+    public static List<DetailedInventory> GetAllDetailedInventorys()
+    {
+        string itemsDetailsFilePath = Utils.GetInventoryDetailsFilePath();
+        if (!File.Exists(itemsDetailsFilePath))
+        {
+            return new List<DetailedInventory>();
+        }
+
+        var json = File.ReadAllText(itemsDetailsFilePath);
+
+        return JsonSerializer.Deserialize<List<DetailedInventory>>(json);
+    }
 
 
 
@@ -64,6 +76,7 @@ public static class InventoryItemService
             {
                 ItemName = ItemName,
                 Quantity = Quantity
+                
             });
 
         }
@@ -150,19 +163,10 @@ public static class InventoryItemService
 
     }
 
-    public static List<InventoryDetail> GetAllInventoryDetails()
-    {
-        string itemsFilePath = Utils.GetInventoryDetailsFilePath();
-        if (!File.Exists(itemsFilePath))
-        {
-            return new List<InventoryDetail>();
-        }
 
-        var json = File.ReadAllText(itemsFilePath);
 
-        return JsonSerializer.Deserialize<List<InventoryDetail>>(json);
-    }
-    private static void SaveAllInventoryDetails(List<InventoryDetail> items)
+
+    private static void SaveAllDetailedInventorys(List<DetailedInventory> items)
     {
         string appDataDirectoryPath = Utils.GetAppDirectoryPath();
         string itemsFilePath = Utils.GetInventoryDetailsFilePath();
@@ -177,42 +181,41 @@ public static class InventoryItemService
     }
 
 
-    public static List<InventoryDetail> UpdateInventoryDetail() {
+    public static List<DetailedInventory> UpdateDetailedInventory() {
         List<RequestedItem> requestedItems = GetAllRequestedItems();
         List<InventoryItem> allItems = GetAll();
+        List<DetailedInventory> inventDetail = GetAllDetailedInventorys();
 
-        
-        List<InventoryDetail> inventoryDetails = allItems
-    .GroupBy(item => item.ItemName)
-    .Select(group => new InventoryDetail
-    {
-        ItemName = group.Key,
-        Quantity = group.Sum(x => x.Quantity)
-    })
-    .ToList();
 
-        var inventoryDetailsWithLatestDates = inventoryDetails
-            .Join(requestedItems,
-                inventoryDetail => inventoryDetail.ItemName,
-                requestedItem => requestedItem.ItemName,
-                (inventoryDetail, requestedItem) => new
+
+        var nameDate = requestedItems
+         .GroupBy(item => item.ItemName)
+         .Select(group => new
+         {
+             ItemName = group.Key,
+             TakenOutDate = group.Max(x => x.TakenOutDate)
+         })
+         .ToList();
+
+        List<DetailedInventory> DetailedInventorys = allItems
+            .GroupJoin(nameDate,
+                inventoryItem => inventoryItem.ItemName,
+                latestDate => latestDate.ItemName,
+                (inventoryItem, latestDate) => new { inventoryItem, latestDate })
+            .SelectMany(x => x.latestDate.DefaultIfEmpty(),
+                (x, y) => new DetailedInventory
                 {
-                    inventoryDetail,
-                    latestDate = requestedItems
-                        .Where(x => x.ItemName == inventoryDetail.ItemName)
-                        .Max(x => x.TakenOutDate)
+                    ItemName = x.inventoryItem.ItemName,
+                    Quantity = x.inventoryItem.Quantity,
+                    TakenOutDate = y?.TakenOutDate
                 })
-            .Select(x => new InventoryDetail
-            {
-                ItemName = x.inventoryDetail.ItemName,
-                Quantity = x.inventoryDetail.Quantity,
-                TakenOutDate = x.latestDate
-            })
             .ToList();
 
-        SaveAllInventoryDetails(inventoryDetailsWithLatestDates);
 
-        return inventoryDetailsWithLatestDates;
+
+        SaveAllDetailedInventorys(DetailedInventorys);
+
+        return DetailedInventorys;
     }
 
     public static List<RequestedItem> ApproveItem(string adminName,string username,string itemname, int quantity,Guid requestItemId,bool isApproved)
@@ -240,8 +243,6 @@ public static class InventoryItemService
 
 
 
-
-        UpdateInventoryDetail();
 
         return requestedItems;
     }

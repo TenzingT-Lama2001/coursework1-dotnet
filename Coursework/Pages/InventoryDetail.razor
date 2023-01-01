@@ -1,5 +1,5 @@
 ﻿@page "/inventorydetail"
-@inject IJSRuntime JSRuntime;
+
 
 <ul class="nav nav-tabs">
     <li class="nav-item ">
@@ -51,7 +51,7 @@
     </thead>
     <tbody>
         @{
-            IEnumerable<RequestedItem> itemList = _requestedItems;
+            IEnumerable<DetailedInventory> itemList = _inventoryDetails;
 
             if (_sortBy == "itemName")
             {
@@ -72,17 +72,17 @@
 
 
 
-            foreach (var RequestedItem in itemList)
+            foreach (var detail in itemList)
             {
                 <tr>
 
-                    <td>@RequestedItem.ItemName</td>
+                    <td>@detail.ItemName</td>
                     <td>
-                        @RequestedItem.Quantity - 
+                        @detail.Quantity 
                     </td>
                     <td>
                         <p class="small mb-0">
-                            @RequestedItem.TakenOutDate
+                            @detail.TakenOutDate
                         </p>
                     </td>
 
@@ -102,7 +102,7 @@
     private bool _showDeclineItemDialog { get; set; }
     private bool _showApproveItemDialog { get; set; }
     private List<InventoryItem> _items { get; set; }
-    private List<RequestedItem> _requestedItems { get; set; }
+    private List<DetailedInventory> _inventoryDetails { get; set; }
     private InventoryItem _deleteItem { get; set; }
     private RequestedItem _declineItem { get; set; }
     private string _dialogTitle { get; set; }
@@ -119,13 +119,12 @@
     private string _requestedBy;
     private string _role;
     private Status _isApproved = Status.Approved;
-   
+
 
 
     protected override void OnInitialized()
     {
-        _requestedItems = InventoryItemService.GetAllRequestedItems();
-        _items = InventoryItemService.GetAll();
+        _inventoryDetails = InventoryItemService.GetAllDetailedInventorys();
         _admin = UsersService.GetById(_globalState.CurrentUser.Id);
         _adminName = _admin.Username.ToString();
 
