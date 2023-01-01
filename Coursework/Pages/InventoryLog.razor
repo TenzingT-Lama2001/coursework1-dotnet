@@ -1,18 +1,19 @@
 ﻿
 @page "/inventorylog"
 @inject IJSRuntime JSRuntime;
+@using System.Globalization;
 
-<ul class="nav nav-tabs">
-    <li class="nav-item ">
-        <a class='nav-link btn @(_tabFilter == "All" ? "active" : "")' @onclick='()=>TabFilter("All")'>All</a>
-    </li>
+<ul class="nav justify-content-between">
     <li class="nav-item">
-        <a class='nav-link btn @(_tabFilter == "Due" ? "active" : "")' @onclick='()=>TabFilter("Due")'>Due</a>
+        <h2>Inventory Log</h2>
     </li>
-    <li class="nav-item">
-        <a class='nav-link btn @(_tabFilter == "Done" ? "active" : "")' @onclick='()=>TabFilter("Done")'>Done</a>
+    <li class="nav-item ml-auto">
+        <div>
+            <input type="month" @oninput="ShowLog" />
+        </div>
     </li>
 </ul>
+
 
 <table class="table">
     <thead>
@@ -67,7 +68,7 @@
                 <div class="d-flex">
                     Date Taken out
                     <a class='btn text-@(_sortBy == "date" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
-                       @onclick='()=>SortByHandler("status")'>
+                       @onclick='()=>SortByHandler("date")'>
                         <span class='oi oi-sort-@(_sortBy == "date" ? _sortDirection : "ascending")' />
                     </a>
                 </div>
@@ -112,39 +113,90 @@
                 t.TakenOutDate);
             }
 
-
-
-            foreach (var RequestedItem in itemList)
+            if (month == 0 && year == 0)
             {
-                <tr>
+                foreach (var RequestedItem in itemList)
+                {
+                    <tr>
 
-                    <td>@RequestedItem.ItemName</td>
-                    <td>
-                        @RequestedItem.Quantity
-                    </td>
-                    <td>
-                        <p class="small mb-0">
-                            @RequestedItem.AdminName
-                        </p>
-                    </td>
-                                        <td>
-                        <p class="small mb-0">
-                            @RequestedItem.UserName
-                        </p>
-                    </td>
-                    <td>
-                        <p class="small mb-0">
-                            @RequestedItem.Status
-                        </p>
-                    </td>
-                    <td>
-                        <p class="small mb-0">
-                            @RequestedItem.TakenOutDate
-                        </p>
-                    </td>
-                   
-                </tr>
+                        <td>@RequestedItem.ItemName</td>
+                        <td>
+                            @RequestedItem.Quantity
+                        </td>
+                        <td>
+                            <p class="small mb-0">
+                                @RequestedItem.AdminName
+                            </p>
+                        </td>
+                        <td>
+                            <p class="small mb-0">
+                                @RequestedItem.UserName
+                            </p>
+                        </td>
+                        <td>
+                            <p class="small mb-0">
+                                @RequestedItem.Status
+                            </p>
+                        </td>
+                        <td>
+                            <p class="small mb-0">
+                                @RequestedItem.TakenOutDate
+                            </p>
+                        </td>
+
+                    </tr>
+                }
+
             }
+            else {
+                foreach (var RequestedItem in itemList)
+                {
+                    if (RequestedItem.TakenOutDate != null)
+                    {
+                        string takenOutDateString = RequestedItem.TakenOutDate;
+                        DateTime takenOutDate = DateTime.ParseExact(takenOutDateString, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                        int takenOutDateMonth = takenOutDate.Month;
+                        int takenOutDateYear = takenOutDate.Year;
+
+
+
+
+                        if (month.ToString() == takenOutDateMonth.ToString() && year.ToString() == takenOutDateYear.ToString())
+                        {
+                            <tr>
+
+                        <td>@RequestedItem.ItemName</td>
+                        <td>
+                            @RequestedItem.Quantity
+                        </td>
+                        <td>
+                            <p class="small mb-0">
+                                @RequestedItem.AdminName
+                            </p>
+                        </td>
+                        <td>
+                            <p class="small mb-0">
+                                @RequestedItem.UserName
+                            </p>
+                        </td>
+                        <td>
+                            <p class="small mb-0">
+                                @RequestedItem.Status
+                            </p>
+                        </td>
+                        <td>
+                            <p class="small mb-0">
+                                @RequestedItem.TakenOutDate
+                            </p>
+                        </td>
+
+                    </tr>
+                    }
+                    }
+                }
+            }
+
+
         }
     </tbody>
 </table>
@@ -176,6 +228,9 @@
     private string _requestedBy;
     private string _role;
     private Status _isApproved = Status.Approved;
+    private int month;
+    private int year;
+    private string SelectedMonthAndYear { get; set; }
 
 
 
@@ -191,6 +246,21 @@
 
 
 
+    }
+
+
+    private void ShowLog(ChangeEventArgs e)
+    {
+        if (e.Value != null)
+        {
+            var searchTerm = Convert.ToDateTime(e.Value);
+            month = searchTerm.Month;
+            year = searchTerm.Year;
+        }
+    
+
+
+        //_inventory = InventoryService.GetAll().Where(t => t.LastTakenOutOn.Month.ToString().Contains(month.ToString())).ToList();//_globalState.CurrentUser.Id
     }
 
     private void SortByHandler(string sortByName)

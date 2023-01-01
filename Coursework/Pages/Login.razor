@@ -6,15 +6,8 @@
         <form class="text-center" @onsubmit="LoginHandler">
             <img class="mb-4" src="/appicon.png" alt="" height="72">
             <h1 class="h3 mb-3 fw-normal">Please Login</h1>
-            @if (_showDefaultCredentials)
-            {
-                <div class="alert alert-info" role="alert">
-                    Username: <strong>@UsersService.SeedUsername</strong><br />
-                    Password: <strong>@UsersService.SeedPassword</strong>
-                </div>
-            }
 
-            <div class="form-floating">
+            <div class="form-floating mb-3">
                 <input type="text" class="form-control username" @bind="_username" placeholder="Username" />
                 <label for="floatingInput">Username</label>
             </div>
@@ -36,7 +29,6 @@
 @code {
     [CascadingParameter]
     private GlobalState _globalState { get; set; }
-    private bool _showDefaultCredentials { get; set; }
     private string _username { get; set; }
     private string _password { get; set; }
     private string _errorMessage = "";
@@ -46,7 +38,7 @@
         try
         {
             var user = UsersService.Login(UsersService.SeedUsername, UsersService.SeedPassword);
-            _showDefaultCredentials = user.HasInitialPassword;
+       
         }
         catch { }
 
