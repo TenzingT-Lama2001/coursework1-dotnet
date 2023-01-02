@@ -49,4 +49,17 @@
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Remove="C:\Users\tenzy\.nuget\packages\chartjs.blazor.fork\2.0.2\contentFiles\any\netstandard2.1\wwwroot\ChartJsBlazorInterop.js" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="ChartJs.Blazor" Version="1.1.0" />
+      <PackageReference Include="ChartJs.Blazor.Fork" Version="2.0.2" />
+      <PackageReference Include="Google.Apis.Auth.Mvc" Version="1.58.0" />
+      <PackageReference Include="Google.DataTable.Net.Wrapper" Version="4.1.0" />
+      <PackageReference Include="MudBlazor" Version="6.1.7" />
+      <PackageReference Include="Radzen.Blazor" Version="4.4.7" />
+    </ItemGroup>
+
 </Project>

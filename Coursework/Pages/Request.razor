@@ -281,10 +281,11 @@
                 int quantity = _requestedItemModel.Quantity;
                 Guid id = _requestedItemModel.Id;
                 bool isApproved = true;
-
+                _requestedItems = InventoryItemService.ApproveItem(_adminName, _requestedBy, itemName, quantity, id, isApproved);
+                InventoryItemService.UpdateDetailedInventory();
                 DateTime currentTime = DateTime.Now;
                 DateTime startTime = new DateTime(currentTime.Year, currentTime.Month, currentTime.Day, 9, 0, 0);
-                DateTime endTime = new DateTime(currentTime.Year, currentTime.Month, currentTime.Day, 16, 0, 0);
+               DateTime endTime = new DateTime(currentTime.Year, currentTime.Month, currentTime.Day, 16, 0, 0);
 
                 if (currentTime >= startTime && currentTime <= endTime && currentTime.DayOfWeek >= DayOfWeek.Monday && currentTime.DayOfWeek <= DayOfWeek.Friday)
                 {

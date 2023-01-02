@@ -1,0 +1,53 @@
+﻿@page "/barchart"
+@using System.Linq
+
+<MudChart ChartType="ChartType.Bar" ChartSeries="@Series" XAxisLabels="@XAxisLabels" Width="100%" Height="350px">
+    <CustomGraphics>
+        <style>
+            .heavy {
+                font: bold 30px Helvetica;
+            }
+
+            .Rrrrr {
+                font: italic 40px Helvetica;
+                fill: rgb(62,44,221);
+            }
+        </style>
+
+    </CustomGraphics>
+</MudChart>
+
+@code {
+    [CascadingParameter]
+    private GlobalState _globalState { get; set; }
+    private List<RequestedItem> _requestedItems { get; set; }
+    public List<ChartSeries> Series { get; set; }
+    public string[] XAxisLabels { get; set; }
+    public string YAxisLabels { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _requestedItems = InventoryItemService.GetAllRequestedItems();
+
+        // Group the requested items by ItemName and sum the Quantity
+        var groupedItems = _requestedItems
+            .Where(item => item.Status == Status.Approved)
+            .GroupBy(item => item.ItemName)
+            .Select(group => new
+            {
+                ItemName = group.Key,
+                Quantity = group.Sum(item => item.Quantity)
+            });
+
+        Series = new List<ChartSeries>
+        {
+            new ChartSeries()
+        {
+            Name = "Item Name",
+            Data = groupedItems.Select(item => Convert.ToDouble(item.Quantity)).ToArray()
+}
+        };
+        XAxisLabels = groupedItems.Select(item => item.ItemName).ToArray();
+   
+    }
+}
