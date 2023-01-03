@@ -75,6 +75,7 @@
 
             foreach (var detail in itemList)
             {
+                if (detail.Quantity > 0) { 
                 <tr>
 
                     <td>@detail.ItemName</td>
@@ -88,6 +89,7 @@
                     </td>
 
                 </tr>
+                }
             }
         }
     </tbody>

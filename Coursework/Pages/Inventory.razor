@@ -10,12 +10,7 @@
     <li class="nav-item ">
         <a class='nav-link btn @(_tabFilter == "All" ? "active" : "")' @onclick='()=>TabFilter("All")'>All</a>
     </li>
-    <li class="nav-item">
-        <a class='nav-link btn @(_tabFilter == "Due" ? "active" : "")' @onclick='()=>TabFilter("Due")'>Due</a>
-    </li>
-    <li class="nav-item">
-        <a class='nav-link btn @(_tabFilter == "Done" ? "active" : "")' @onclick='()=>TabFilter("Done")'>Done</a>
-    </li>
+
 
 </ul>
 
@@ -26,7 +21,7 @@
 
             <th>
                 <div class="d-flex">
-                    <input type="search" class="form-control search" placeholder="Search" @oninput="SearchItemName" />
+                    Item Name
                     <a class='btn text-@(_sortBy == "ItemName" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
                         @onclick='()=>SortByHandler("ItemName")'>
                         <span class='oi oi-sort-@(_sortBy == "ItemName" ? _sortDirection : "ascending")' />
@@ -42,23 +37,14 @@
                     </a>
                 </div>
             </th>
-            <th>
-                <div class="d-flex">
-                    Created At
-                    <a class='btn text-@(_sortBy == "createdAt" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
-                        @onclick='()=>SortByHandler("createdAt")'>
-                        <span class='oi oi-sort-@(_sortBy == "createdAt" ? _sortDirection : "ascending")' />
-                    </a>
-                </div>
-            </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
         @{
             IEnumerable<InventoryItem> itemList = _items;
-  
-            if (_sortBy == "itemName")
+
+            if (_sortBy == "ItemName")
             {
                 itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.ItemName) : itemList.OrderByDescending(t =>
                 t.ItemName);
@@ -69,46 +55,43 @@
                 t.Quantity);
             }
 
-            else if (_sortBy == "createdAt")
-            {
-                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.CreatedAt) : itemList.OrderByDescending(t =>
-                t.CreatedAt);
-            }
+
 
 
 
             foreach (var InventoryItem in itemList)
+
             {
-                        <tr>
+                if (@InventoryItem.Quantity > 0)
+                {
+                    <tr>
 
-                            <td>@InventoryItem.ItemName</td>
-                            <td>
-                                @InventoryItem.Quantity
-                            </td>
+                        <td>@InventoryItem.ItemName</td>
                         <td>
-                            <p class="small mb-0">
-                                @InventoryItem.CreatedAt.ToString("MMM dd, yyyy h:mm tt")
-                            </p>
+
+                            @InventoryItem.Quantity
                         </td>
+
                         <td>
 
 
-                        <button class='btn btn-outline-secondary  @(_role == "Admin" ? "display-none" : "")' type="button"
+                            <button class='btn btn-outline-secondary  @(_role == "Admin" ? "display-none" : "")' type="button"
                             @onclick="()=>OpenTakeOutItemDialog(InventoryItem)">
-                            <span class="oi oi-pencil" /> Take out
-                        </button>
+                                <span class="oi oi-pencil" /> Take out
+                            </button>
 
-                        <button class='btn btn-outline-secondary  @(_role == "User" ? "display-none" : "")' type="button"
+                            <button class='btn btn-outline-secondary  @(_role == "User" ? "display-none" : "")' type="button"
                             @onclick="()=>OpenEditItemDialog(InventoryItem)">
-                            <span class="oi oi-pencil" /> Edit
-                        </button>
-                        <button class='btn btn-outline-danger @(_role == "User" ? "display-none" : "")' type="button" @onclick="()=>OpenDeleteItemDialog(InventoryItem)">
-                            <span class="oi oi-delete" /> Delete
-                        </button>
-                                
-                   
+                                <span class="oi oi-pencil" /> Edit
+                            </button>
+                            <button class='btn btn-outline-danger @(_role == "User" ? "display-none" : "")' type="button" @onclick="()=>OpenDeleteItemDialog(InventoryItem)">
+                                <span class="oi oi-delete" /> Delete
+                            </button>
+
+
                         </td>
                     </tr>
+                }
             }
         }
     </tbody>
@@ -229,11 +212,12 @@
         var searchTerm = e.Value.ToString();
         if (!string.IsNullOrEmpty(searchTerm) && searchTerm.Length > 2)
         {
-            _items = InventoryItemService.GetAll().Where(t =>
-            t.ItemName.ToLower().Contains(searchTerm.ToLower())).ToList();
+            // Get all items whose ItemName property contains the search term (case-insensitive)
+            _items = InventoryItemService.GetAll().Where(t => t.ItemName.ToLower().Contains(searchTerm.ToLower())).ToList();
         }
         else
         {
+            // If the search term is empty or null, or if it has a length less than 3, return the full list of items
             _items = InventoryItemService.GetAll();
         }
     }
@@ -278,17 +262,26 @@
             {
                 _editItemErrorMessage = "";
                 if (_itemModel.Id == Guid.Empty)
+
                 {
+                    if (_itemModel.Quantity > 0 && !string.IsNullOrEmpty(_itemModel.ItemName))
+                    {
                     _items = InventoryItemService.Create(_itemModel.ItemName,_itemModel.Quantity );
                     InventoryItemService.UpdateDetailedInventory();
+                        _showEditItemDialog = false; 
+                    }
+                    else{
+                        _editItemErrorMessage = "Invalid name or quantity";
+                    }
                 }
                 else
                 {
                     _items = InventoryItemService.Update(_itemModel.Id, _itemModel.ItemName,_itemModel.Quantity
                    );
                     InventoryItemService.UpdateDetailedInventory();
+                    _showEditItemDialog = false;
                 }
-                _showEditItemDialog = false;
+                
             }
             catch (Exception e)
             {
@@ -304,11 +297,17 @@
         }
         else{
             try
-            {
+            {                       
                 _takeOutItemErrorMessage = "";
                 if (_itemModel.Quantity < _takeQuantity)
                 {
                     _takeOutItemErrorMessage = "You cannot take out more quantity than" + _itemModel.Quantity;
+                }
+                else if (_takeQuantity == 0){
+                    _takeOutItemErrorMessage = "Invalid quantity";
+                }
+                else if (_itemModel.Quantity == 0){
+                    _takeOutItemErrorMessage = "Sorry the item is out of stock";
                 }
                 else { 
                     _requestedItems = InventoryItemService.RequestItem(_userName, _itemModel.ItemName, _takeQuantity);

@@ -82,8 +82,8 @@
 }
 
 @code {
-    [CascadingParameter]
-    private GlobalState _globalState { get; set; }
+        [CascadingParameter]
+        private GlobalState _globalState { get; set; }
     private List<User> _users { get; set; }
     private bool _showAddUserDialog { get; set; }
     private bool _showDeleteUserDialog { get; set; }
@@ -116,6 +116,7 @@
         {
             try
             {
+                if (!string.IsNullOrEmpty(_username) && !string.IsNullOrEmpty(_password)) { 
                 if (_role == Role.Admin)
                 {
                     var NotTwoAdmin = UsersService.CheckAdmin(_role);
@@ -131,6 +132,10 @@
                     _addUserErrorMessage = "";
                     _users = UsersService.Create(_globalState.CurrentUser.Id, _username, _password, _role);
                     _showAddUserDialog = false;
+                }
+                }
+                else{
+                    _addUserErrorMessage = "Username or password cannot be empty";
                 }
 
             }

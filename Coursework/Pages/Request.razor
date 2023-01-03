@@ -19,7 +19,7 @@
 
             <th>
                 <div class="d-flex">
-                    <input type="search" class="form-control search" placeholder="Search" @oninput="SearchItemName" />
+                    Item Name
                     <a class='btn text-@(_sortBy == "ItemName" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
                         @onclick='()=>SortByHandler("ItemName")'>
                         <span class='oi oi-sort-@(_sortBy == "ItemName" ? _sortDirection : "ascending")' />
@@ -36,12 +36,10 @@
                 </div>
             </th>
             <th>
-                <div class="d-flex">
+                <div class=" d-flex ">
                     Username
-                    <a class='btn text-@(_sortBy == "username" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
-                        @onclick='()=>SortByHandler("username")'>
-                        <span class='oi oi-sort-@(_sortBy == "username" ? _sortDirection : "ascending")' />
-                    </a>
+
+                 
                 </div>
             </th>
                         <th>
@@ -60,7 +58,7 @@
         @{
             IEnumerable<RequestedItem> itemList = _requestedItems;
 
-            if (_sortBy == "itemName")
+            if (_sortBy == "ItemName")
             {
                 itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.ItemName) : itemList.OrderByDescending(t =>
                 t.ItemName);
@@ -76,11 +74,7 @@
                 t.Status);
             }
 
-            else if (_sortBy == "username")
-            {
-                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.UserName) : itemList.OrderByDescending(t =>
-                t.UserName);
-            }
+
 
 
 
@@ -229,16 +223,18 @@
     }
 
 
+
     private void SearchItemName(ChangeEventArgs e)
     {
         var searchTerm = e.Value.ToString();
         if (!string.IsNullOrEmpty(searchTerm) && searchTerm.Length > 2)
         {
-            _items = InventoryItemService.GetAll().Where(t =>
-            t.ItemName.ToLower().Contains(searchTerm.ToLower())).ToList();
+            // Get all items whose ItemName property contains the search term (case-insensitive)
+            _items = InventoryItemService.GetAll().Where(t => t.ItemName.ToLower().Contains(searchTerm.ToLower())).ToList();
         }
         else
         {
+            // If the search term is empty or null, or if it has a length less than 3, return the full list of items
             _items = InventoryItemService.GetAll();
         }
     }

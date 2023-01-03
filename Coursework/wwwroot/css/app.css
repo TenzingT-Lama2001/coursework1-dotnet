@@ -97,3 +97,7 @@ a, .btn-link {
 		padding-left: env(safe-area-inset-left);
 	}
 }
+
+.mt-n1 {
+    margin-top: -3rem !important;
+}

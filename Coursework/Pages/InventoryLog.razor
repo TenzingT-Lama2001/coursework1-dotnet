@@ -21,10 +21,10 @@
 
             <th>
                 <div class="d-flex">
-                    Item
-                    <a class='btn text-@(_sortBy == "itemName" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
-                       @onclick='()=>SortByHandler("quantity")'>
-                        <span class='oi oi-sort-@(_sortBy == "itemName" ? _sortDirection : "ascending")' />
+                    Item Name
+                    <a class='btn text-@(_sortBy == "ItemName" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
+                       @onclick='()=>SortByHandler("ItemName")'>
+                        <span class='oi oi-sort-@(_sortBy == "ItemName" ? _sortDirection : "ascending")' />
                     </a>
                 </div>
             </th>
@@ -40,19 +40,11 @@
                  <th>
                 <div class="d-flex">
                     Approved by
-                    <a class='btn text-@(_sortBy == "status" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
-                       @onclick='()=>SortByHandler("status")'>
-                        <span class='oi oi-sort-@(_sortBy == "status" ? _sortDirection : "ascending")' />
-                    </a>
                 </div>
             </th>
             <th>
                 <div class="d-flex">
                     Taken By
-                    <a class='btn text-@(_sortBy == "username" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
-                       @onclick='()=>SortByHandler("username")'>
-                        <span class='oi oi-sort-@(_sortBy == "username" ? _sortDirection : "ascending")' />
-                    </a>
                 </div>
             </th>
                         <th>
@@ -81,7 +73,7 @@
         @{
             IEnumerable<RequestedItem> itemList = _requestedItems;
 
-            if (_sortBy == "itemName")
+            if (_sortBy == "ItemName")
             {
                 itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.ItemName) : itemList.OrderByDescending(t =>
                 t.ItemName);
@@ -91,22 +83,7 @@
                 itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.Quantity) : itemList.OrderByDescending(t =>
                 t.Quantity);
             }
-            else if (_sortBy == "status")
-            {
-                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.Status) : itemList.OrderByDescending(t =>
-                t.Status);
-            }
 
-            else if (_sortBy == "username")
-            {
-                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.UserName) : itemList.OrderByDescending(t =>
-                t.UserName);
-            }
-            else if (_sortBy == "adminName")
-            {
-                itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.AdminName) : itemList.OrderByDescending(t =>
-                t.AdminName);
-            }
             else if (_sortBy == "date")
             {
                 itemList = _sortDirection == "ascending" ? itemList.OrderBy(t => t.TakenOutDate) : itemList.OrderByDescending(t =>
