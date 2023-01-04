@@ -13,7 +13,7 @@ public class Item
 }
 public class InventoryItem : Item
     {
-        public Guid CreatedBy { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
 }

@@ -2,15 +2,7 @@
 @inject IJSRuntime JSRuntime;
 
 <ul class="nav nav-tabs">
-    <li class="nav-item ">
-        <a class='nav-link btn @(_tabFilter == "All" ? "active" : "")' @onclick='()=>TabFilter("All")'>All</a>
-    </li>
-    <li class="nav-item">
-        <a class='nav-link btn @(_tabFilter == "Due" ? "active" : "")' @onclick='()=>TabFilter("Due")'>Due</a>
-    </li>
-    <li class="nav-item">
-        <a class='nav-link btn @(_tabFilter == "Done" ? "active" : "")' @onclick='()=>TabFilter("Done")'>Done</a>
-    </li>
+    <h1 class="navbar-brand mb-5 h1">Requested Items</h1>
 </ul>
 
 <table class="table">
@@ -105,13 +97,13 @@
                         @if (RequestedItem.Status.Equals(_isApproved))
                         {
                              JSRuntime.InvokeAsync<object>("console.log", "The _isApproved value is: " + _isApproved);
-                            <button class='btn btn-outline-secondary' type="button"
+                            <button class='btn btn-outline-success' type="button"
                        >
-                                <span class="oi oi-pencil" /> Approved
+                                <span class="oi oi-check" /> Approved
                             </button>
                         }
                         else{
-                                      <button class='btn btn-outline-secondary' type="button"
+                                      <button class='btn btn-outline-warning' type="button"
                             @onclick="()=>OpenApproveItemDialog(RequestedItem)">
                                         <span class="oi oi-pencil" /> Approve
                                     </button>
@@ -135,17 +127,17 @@
 {
         <ModalDialog Title="@_dialogTitle" OnClose="@OnCloseApproveItemDialogClose" OkLabel="@_dialogOkLabel">
         <div class="form-floating">
-            <input id="ItemName" type="text" class="form-control" @bind="_requestedItemModel.ItemName" placeholder="Item Name" />
+            <input id="ItemName" type="text" class="form-control" @bind="_requestedItemModel.ItemName" placeholder="Item Name" disabled/>
             <label for="ItemName">Item Name</label>
         </div>
             <div class="form-floating">
-            <input id="ItemName" type="text" class="form-control" @bind="_requestedItemModel.Quantity" placeholder="Item Quantity" />
+            <input id="ItemName" type="text" class="form-control" @bind="_requestedItemModel.Quantity" placeholder="Item Quantity" disabled />
             <label for="ItemName">Item Quantity</label>
         </div>
 
                
          <div class="form-floating">
-            <input id="ItemName" type="text" class="form-control" @bind="_requestedItemModel.UserName" placeholder="User Name" />
+            <input id="ItemName" type="text" class="form-control" @bind="_requestedItemModel.UserName" placeholder="User Name" disabled />
             <label for="ItemName"> User Name</label>
         </div>
 
@@ -230,12 +222,12 @@
         if (!string.IsNullOrEmpty(searchTerm) && searchTerm.Length > 2)
         {
             // Get all items whose ItemName property contains the search term (case-insensitive)
-            _items = InventoryItemService.GetAll().Where(t => t.ItemName.ToLower().Contains(searchTerm.ToLower())).ToList();
+            _items = InventoryItemService.GetAllItems().Where(t => t.ItemName.ToLower().Contains(searchTerm.ToLower())).ToList();
         }
         else
         {
             // If the search term is empty or null, or if it has a length less than 3, return the full list of items
-            _items = InventoryItemService.GetAll();
+            _items = InventoryItemService.GetAllItems();
         }
     }
 

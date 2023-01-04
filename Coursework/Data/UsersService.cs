@@ -57,9 +57,6 @@ public static class UsersService
         return users;
     }
 
-
-
-
     public static bool CheckAdmin(Role role)
     {
         List<User> users = GetAll();

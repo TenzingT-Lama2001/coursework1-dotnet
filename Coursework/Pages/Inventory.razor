@@ -1,18 +1,14 @@
 ﻿@page "/inventory"
 
 <nav class="navbar navbar-light bg-light justify-content-between">
-    <h1 class="navbar-brand mb-0 h1">Todos</h1>
+    <h1 class="navbar-brand mb-5 h1">Inventory</h1>
     <button class='btn btn-primary @(_role == "User" ? "display-none" : "" )' type="button" @onclick="OpenAddTodoDialog">
-        <span class="oi oi-plus" /> Add
+        <span class="oi oi-plus" /> Add item
     </button>
+             
+
+        
 </nav>
-<ul class="nav nav-tabs">
-    <li class="nav-item ">
-        <a class='nav-link btn @(_tabFilter == "All" ? "active" : "")' @onclick='()=>TabFilter("All")'>All</a>
-    </li>
-
-
-</ul>
 
 
 <table class="table">
@@ -22,6 +18,7 @@
             <th>
                 <div class="d-flex">
                     Item Name
+                   
                     <a class='btn text-@(_sortBy == "ItemName" ? "primary" : "secondary")' data-mdb-toggle="tooltip"
                         @onclick='()=>SortByHandler("ItemName")'>
                         <span class='oi oi-sort-@(_sortBy == "ItemName" ? _sortDirection : "ascending")' />
@@ -36,9 +33,16 @@
                         <span class='oi oi-sort-@(_sortBy == "quantity" ? _sortDirection : "ascending")' />
                     </a>
                 </div>
+
+  
+            </th>
+            <th>
+                
+      <input type="search" class="form-control search d-flex" placeholder="Search by item name" @oninput="SearchItemName" />
             </th>
             <th></th>
         </tr>
+
     </thead>
     <tbody>
         @{
@@ -75,9 +79,9 @@
                         <td>
 
 
-                            <button class='btn btn-outline-secondary  @(_role == "Admin" ? "display-none" : "")' type="button"
+                            <button class='btn btn-outline-dark @(_role == "Admin" ? "display-none" : "")' type="button"
                             @onclick="()=>OpenTakeOutItemDialog(InventoryItem)">
-                                <span class="oi oi-pencil" /> Take out
+                                <span class="oi oi-action-undo" /> Take out
                             </button>
 
                             <button class='btn btn-outline-secondary  @(_role == "User" ? "display-none" : "")' type="button"
@@ -121,7 +125,7 @@
 {
     <ModalDialog Title="@_dialogTitle" OnClose="@OnTakeOutItemDialogClose" OkLabel="@_dialogOkLabel">
         <div class="form-floating">
-            <input id="ItemName" type="text" class="form-control" @bind="_itemModel.ItemName" placeholder="Item Name" />
+            <input id="ItemName" type="text" class="form-control" @bind="_itemModel.ItemName" placeholder="Item Name" disabled/>
             <label for="ItemName">Item Name</label>
         </div>
         <div class="form-floating">
@@ -175,7 +179,7 @@
 
     protected override void OnInitialized()
     {
-        _items = InventoryItemService.GetAll();
+        _items = InventoryItemService.GetAllItems();
         _requestedItems = InventoryItemService.GetAllRequestedItems();
         _user = UsersService.GetById(_globalState.CurrentUser.Id);
         _userName = _user.Username.ToString();
@@ -213,12 +217,12 @@
         if (!string.IsNullOrEmpty(searchTerm) && searchTerm.Length > 2)
         {
             // Get all items whose ItemName property contains the search term (case-insensitive)
-            _items = InventoryItemService.GetAll().Where(t => t.ItemName.ToLower().Contains(searchTerm.ToLower())).ToList();
+            _items = InventoryItemService.GetAllItems().Where(t => t.ItemName.ToLower().Contains(searchTerm.ToLower())).ToList();
         }
         else
         {
             // If the search term is empty or null, or if it has a length less than 3, return the full list of items
-            _items = InventoryItemService.GetAll();
+            _items = InventoryItemService.GetAllItems();
         }
     }
 
@@ -266,7 +270,7 @@
                 {
                     if (_itemModel.Quantity > 0 && !string.IsNullOrEmpty(_itemModel.ItemName))
                     {
-                    _items = InventoryItemService.Create(_itemModel.ItemName,_itemModel.Quantity );
+                    _items = InventoryItemService.CreateItem(_itemModel.ItemName,_itemModel.Quantity );
                     InventoryItemService.UpdateDetailedInventory();
                         _showEditItemDialog = false; 
                     }
@@ -276,7 +280,7 @@
                 }
                 else
                 {
-                    _items = InventoryItemService.Update(_itemModel.Id, _itemModel.ItemName,_itemModel.Quantity
+                    _items = InventoryItemService.UpdateItem(_itemModel.Id, _itemModel.ItemName,_itemModel.Quantity
                    );
                     InventoryItemService.UpdateDetailedInventory();
                     _showEditItemDialog = false;
@@ -337,7 +341,7 @@
             try
             {
                 _deleteItemErrorMessage = "";
-                _items = InventoryItemService.Delete( _deleteItem.Id);
+                _items = InventoryItemService.DeleteItem( _deleteItem.Id);
                 _showDeleteItemDialog = false;
                 _deleteItem = null;
             }

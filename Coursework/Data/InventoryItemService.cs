@@ -1,12 +1,10 @@
-﻿
-
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace Coursework.Data;
 
 public static class InventoryItemService
 {
-    private static void SaveAll(List<InventoryItem> items)
+    private static void SaveAllItems(List<InventoryItem> items)
     {
         string appDataDirectoryPath = Utils.GetAppDirectoryPath();
         string itemsFilePath = Utils.GetItemsFilePath();
@@ -20,7 +18,7 @@ public static class InventoryItemService
         File.WriteAllText(itemsFilePath, json);
     }
 
-    public static List<InventoryItem> GetAll()
+    public static List<InventoryItem> GetAllItems()
     {
         string itemsFilePath = Utils.GetItemsFilePath();
         if (!File.Exists(itemsFilePath))
@@ -57,11 +55,9 @@ public static class InventoryItemService
         return JsonSerializer.Deserialize<List<DetailedInventory>>(json);
     }
 
-
-
-    public static List<InventoryItem> Create( string ItemName, int Quantity)
+    public static List<InventoryItem> CreateItem( string ItemName, int Quantity)
     {
-        List<InventoryItem> items = GetAll();
+        List<InventoryItem> items = GetAllItems();
 
         bool itemExists = items.Any(x => x.ItemName == ItemName);
 
@@ -80,14 +76,14 @@ public static class InventoryItemService
             });
 
         }
-        SaveAll(items);
+        SaveAllItems(items);
         return items;
 
     }
 
-    public static List<InventoryItem> Delete( Guid id)
+    public static List<InventoryItem> DeleteItem( Guid id)
     {
-        List<InventoryItem> items = GetAll();
+        List<InventoryItem> items = GetAllItems();
         InventoryItem item = items.FirstOrDefault(x => x.Id == id);
 
         if (item == null)
@@ -96,25 +92,17 @@ public static class InventoryItemService
         }
 
         items.Remove(item);
-        SaveAll( items);
+        SaveAllItems( items);
         return items;
     }
 
 
-    public static void DeleteByUserId()
+
+
+
+    public static List<InventoryItem> UpdateItem(Guid id, string itemName, int quantity)
     {
-        string todosFilePath = Utils.GetItemsFilePath();
-        if (File.Exists(todosFilePath))
-        {
-            File.Delete(todosFilePath);
-        }
-    }
-
-
-
-    public static List<InventoryItem> Update(Guid id, string itemName, int quantity)
-    {
-        List<InventoryItem> items = GetAll();
+        List<InventoryItem> items = GetAllItems();
         InventoryItem itemToUpdate = items.FirstOrDefault(x => x.Id == id);
 
         if (itemToUpdate == null)
@@ -124,7 +112,7 @@ public static class InventoryItemService
 
         itemToUpdate.ItemName = itemName;
         itemToUpdate.Quantity = quantity;
-        SaveAll( items);
+        SaveAllItems( items);
         return items;
     }
 
@@ -183,7 +171,7 @@ public static class InventoryItemService
 
     public static List<DetailedInventory> UpdateDetailedInventory() {
         List<RequestedItem> requestedItems = GetAllRequestedItems();
-        List<InventoryItem> allItems = GetAll();
+        List<InventoryItem> allItems = GetAllItems();
         List<DetailedInventory> inventDetail = GetAllDetailedInventorys();
 
 
@@ -222,7 +210,7 @@ public static class InventoryItemService
     {
 
         List<RequestedItem> requestedItems = GetAllRequestedItems();
-        List<InventoryItem> allItems = GetAll();
+        List<InventoryItem> allItems = GetAllItems();
 
 
         InventoryItem itemToUpdate = allItems.FirstOrDefault(x => x.ItemName == itemname);
@@ -238,7 +226,7 @@ public static class InventoryItemService
 
 
 
-        SaveAll(allItems);
+        SaveAllItems(allItems);
         SaveAllRequestedItems(requestedItems);
 
 
