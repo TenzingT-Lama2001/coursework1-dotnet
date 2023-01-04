@@ -2,7 +2,7 @@
 
 <nav class="navbar navbar-light bg-light justify-content-between">
     <h1 class="navbar-brand mb-5 h1">Inventory</h1>
-    <button class='btn btn-primary @(_role == "User" ? "display-none" : "" )' type="button" @onclick="OpenAddTodoDialog">
+    <button class='btn btn-primary @(_role == "User" ? "display-none" : "" )' type="button" @onclick="OpenAddItemDialog">
         <span class="oi oi-plus" /> Add item
     </button>
              
@@ -143,8 +143,8 @@
 
 @if (_showDeleteItemDialog)
 {
-    <ModalDialog Title="Delete Todo" OnClose="@OnDeleteItemDialogClose" OkLabel="Confirm">
-    <p>Are you sure you want to delete <strong>@_deleteItem.ItemName</strong> item?</p>
+    <ModalDialog Title="Delete Item" OnClose="@OnDeleteItemDialogClose" OkLabel="Confirm">
+    <p>Are you sure you want to delete <strong>@_deleteItem.ItemName</strong></p>
     @if (!string.IsNullOrEmpty(_deleteItemErrorMessage))
         {
             <AlertMessage Type="danger" Message="@_deleteItemErrorMessage" />
@@ -202,7 +202,7 @@
         }
     }
 
-    private void OpenAddTodoDialog()
+    private void OpenAddItemDialog()
     {
         _dialogTitle = "Add Item";
         _dialogOkLabel = "Add";
@@ -238,7 +238,7 @@
     private void OpenTakeOutItemDialog(InventoryItem takeItem)
     {
         _dialogTitle = "Take Item Out";
-        _dialogOkLabel = "Save";
+        _dialogOkLabel = "Take";
 
         _itemModel = takeItem;
 
@@ -252,7 +252,7 @@
 
     private void updateDate(ChangeEventArgs e)
     {
-        //_todoModel.DueDate = DateTime.Parse(e.Value.ToString());
+     
     }
     private void OnEditItemDialogClose(bool isCancel)
     {

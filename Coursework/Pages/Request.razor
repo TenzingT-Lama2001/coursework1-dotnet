@@ -97,7 +97,7 @@
                         @if (RequestedItem.Status.Equals(_isApproved))
                         {
                              JSRuntime.InvokeAsync<object>("console.log", "The _isApproved value is: " + _isApproved);
-                            <button class='btn btn-outline-success' type="button"
+                            <button class='btn btn-success' type="button"
                        >
                                 <span class="oi oi-check" /> Approved
                             </button>
@@ -277,13 +277,12 @@
                 {
                     _requestedItems = InventoryItemService.ApproveItem(_adminName, _requestedBy, itemName, quantity, id,isApproved);
                     InventoryItemService.UpdateDetailedInventory();
+                    _showApproveItemDialog = false;
                 }
                 else{
                     _approveItemErrorMessage = "You can only approve from Monday to Friday between 9 AM to 4 PM";
                 }
                 
-
-
                 
             
             }
